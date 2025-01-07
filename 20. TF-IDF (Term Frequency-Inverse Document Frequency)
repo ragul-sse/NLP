@@ -1,0 +1,29 @@
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+documents = [
+    "The quick brown fox jumps over the lazy dog.",
+    "Never jump over a lazy dog quickly.",
+    "The fox is quick and brown.",
+    "Dogs are lazy animals."
+]
+
+query = "quick fox"
+
+vectorizer = TfidfVectorizer(stop_words='english')
+
+tfidf_matrix = vectorizer.fit_transform(documents)
+
+query_vector = vectorizer.transform([query])
+
+cosine_similarities = cosine_similarity(query_vector, tfidf_matrix)
+
+similarities = cosine_similarities.flatten()
+ranked_docs_indices = similarities.argsort()[::-1]  
+
+print("Query:", query)
+print("\nRanking of documents based on similarity to the query:")
+for rank, idx in enumerate(ranked_docs_indices, 1):
+    print(f"Rank {rank}: Document {idx + 1} (Similarity: {similarities[idx]:.4f})")
+    print(f"Document: {documents[idx]}\n")
