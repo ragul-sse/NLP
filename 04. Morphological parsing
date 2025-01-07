@@ -1,0 +1,53 @@
+class MorphologicalFiniteStateMachine:
+    def __init__(self):
+        self.states = {"start", "add_s", "add_es", "irregular"}
+        self.current_state = "start"
+        self.transitions = {
+            "start": self.handle_start,
+            "add_s": self.handle_add_s,
+            "add_es": self.handle_add_es,
+            "irregular": self.handle_irregular
+        }
+
+    def handle_start(self, noun):
+        if noun.endswith("s") or noun.endswith("x") or noun.endswith("z") or noun.endswith("sh") or noun.endswith("ch"):
+            self.current_state = "add_es"
+        elif noun in ["man", "woman", "child", "tooth", "foot", "mouse", "person"]:
+            self.current_state = "irregular"
+        else:
+            self.current_state = "add_s"
+
+    def handle_add_s(self, noun):
+        return noun + "s"
+
+    def handle_add_es(self, noun):
+        return noun + "es"
+
+    def handle_irregular(self, noun):
+        irregular_nouns = {
+            "man": "men",
+            "woman": "women",
+            "child": "children",
+            "tooth": "teeth",
+            "foot": "feet",
+            "mouse": "mice",
+            "person": "people"
+        }
+        return irregular_nouns.get(noun, noun)
+
+    def process(self, noun):
+        self.current_state = "start"
+        self.transitions[self.current_state](noun)
+        return self.transitions[self.current_state](noun)
+
+
+def main():
+    fsm = MorphologicalFiniteStateMachine()
+
+    nouns = ["dog", "box", "bush", "man", "woman", "child", "cat"]
+    for noun in nouns:
+        plural = fsm.process(noun)
+        print(f"Singular: {noun}, Plural: {plural}")
+
+if __name__ == "__main__":
+    main()
