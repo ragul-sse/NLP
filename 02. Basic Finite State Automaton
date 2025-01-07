@@ -1,0 +1,43 @@
+class FiniteStateAutomaton:
+    def __init__(self):
+        self.states = {"start", "a", "ab", "reject"}
+        self.current_state = "start"
+        self.accept_state = "ab"
+
+    def transition(self, char):
+        if self.current_state == "start":
+            if char == "a":
+                self.current_state = "a"
+            else:
+                self.current_state = "reject"
+        elif self.current_state == "a":
+            if char == "b":
+                self.current_state = "ab"
+            else:
+                self.current_state = "reject"
+        elif self.current_state == "ab":
+            self.current_state = "reject"  
+        elif self.current_state == "reject":
+            pass  
+
+    def is_accepting(self):
+        return self.current_state == self.accept_state
+
+    def process_string(self, input_string):
+        self.current_state = "start"  
+        for char in input_string:
+            self.transition(char)
+        return self.is_accepting()
+
+
+def main():
+    fsa = FiniteStateAutomaton()
+
+    test_strings = ["ab", "a", "b", "cab", "abab", "xab"]
+
+    for test_string in test_strings:
+        result = fsa.process_string(test_string)
+        print(f"String '{test_string}' accepted: {result}")
+
+if __name__ == "__main__":
+    main()
