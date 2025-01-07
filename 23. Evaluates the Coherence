@@ -1,0 +1,54 @@
+from sentence_transformers import SentenceTransformer, util
+import numpy as np
+
+def evaluate_coherence(text):
+   
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    
+    sentences = text.split('.')
+    sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
+    
+    if len(sentences) < 2:
+        return 
+    
+    embeddings = model.encode(sentences, convert_to_tensor=True)
+    
+    similarities = []
+    for i in range(len(embeddings) - 1):
+        similarity = util.cos_sim(embeddings[i], embeddings[i + 1]).item()
+        similarities.append(similarity)
+    
+    average_similarity = np.mean(similarities)
+    
+
+    if average_similarity > 0.8:
+        coherence = "High"
+    elif 0.5 <= average_similarity <= 0.8:
+        coherence = "Moderate"
+    else:
+        coherence = "Low"
+    
+    return {
+        "Average Similarity": average_similarity,
+        "Coherence Level": coherence,
+        "Sentence Similarities": similarities
+    }
+
+
+def main():
+  
+    text = input("Enter a text to evaluate its coherence:\n")
+    
+    print("\nEvaluating coherence...")
+    result = evaluate_coherence(text)
+    
+    if isinstance(result, str):
+        print(result)  
+    else:
+        print(f"Average Similarity: {result['Average Similarity']:.2f}")
+        print(f"Coherence Level: {result['Coherence Level']}")
+        print("Sentence Similarities:", result['Sentence Similarities'])
+
+
+if __name__ == "__main__":
+    main()
