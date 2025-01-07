@@ -1,0 +1,57 @@
+import nltk
+from nltk import CFG
+
+cfg = CFG.fromstring("""
+    S -> NP VP
+    NP -> DT N | DT N PP | PRP
+    VP -> V | V NP | V PP
+    PP -> P NP
+    DT -> 'the' | 'a'
+    N -> 'dog' | 'cat' | 'ball' | 'house' | 'man' | 'woman'
+    PRP -> 'he' | 'she' | 'it' | 'they'
+    V -> 'runs' | 'run' | 'jumps' | 'jump'
+    P -> 'on' | 'under' | 'over'
+""")
+
+def check_agreement(sentence):
+    words = sentence.lower().split()
+
+    try:
+        parser = nltk.ChartParser(cfg)
+        for tree in parser.parse(words):
+            print(f"Valid sentence structure: {tree}")
+            subject = None
+            verb = None
+            for subtree in tree.subtrees():
+                if subtree.label() == 'NP':  
+                    subject = subtree
+                elif subtree.label() == 'VP':  
+                    verb = subtree[0]
+
+            if subject and verb:
+                subject_word = subject[0][0]
+                verb_word = verb[0]
+                if subject_word in ['he', 'she', 'it'] and verb_word in ['run', 'jump']:
+                    print(f"Agreement issue detected: Subject '{subject_word}' with verb '{verb_word}'")
+                elif subject_word in ['they'] and verb_word in ['runs', 'jumps']:
+                    print(f"Agreement issue detected: Subject '{subject_word}' with verb '{verb_word}'")
+                else:
+                    print("Subject-verb agreement is correct!")
+            else:
+                print("Unable to determine subject-verb agreement.")
+                
+    except ValueError as e:
+        print(f"Sentence doesn't match grammar: {e}")
+
+test_sentences = [
+    "The dog runs",
+    "He run",
+    "They jump",
+    "She jump",
+    "The cat runs under the table"
+]
+
+for sentence in test_sentences:
+    print(f"Checking: '{sentence}'")
+    check_agreement(sentence)
+    print()
