@@ -1,0 +1,40 @@
+import re
+
+class RuleBasedPOSTagger:
+    def __init__(self):
+        self.rules = [
+            (r'.*ed$', 'VBD'),  
+            (r'.*ing$', 'VBG'),  
+            (r'\b(is|am|are)\b', 'VBZ'),  
+            (r'\b(the|a|an)\b', 'DT'),  
+            (r'\b([A-Z][a-z]*)\b', 'NNP'),  
+            (r'\b([a-z]+)\b', 'NN'),  
+            (r'\b([A-Za-z]+)\b', 'VB'),  
+            (r'\b(\d+)\b', 'CD'),  
+            (r'\b(in|on|at|by|with|for)\b', 'IN'), 
+            (r'\b(and|or|but)\b', 'CC'), 
+            (r'\b(\w+)\b', 'RB'), 
+        ]
+        
+    def tag(self, sentence):
+        words = sentence.split()
+        tagged_sentence = []
+        
+        for word in words:
+            tagged = False
+            for pattern, tag in self.rules:
+                if re.fullmatch(pattern, word):
+                    tagged_sentence.append((word, tag))
+                    tagged = True
+                    break
+            if not tagged:
+                tagged_sentence.append((word, 'NN')) 
+            
+        return tagged_sentence
+
+sentence = "The dog is running fast with a ball"
+tagger = RuleBasedPOSTagger()
+tags = tagger.tag(sentence)
+
+for word, tag in tags:
+    print(f'{word}: {tag}')
