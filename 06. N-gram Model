@@ -1,0 +1,43 @@
+import random
+import re
+from collections import defaultdict
+
+def preprocess_text(text):
+    text = re.sub(r'[^a-zA-Z\s]', '', text.lower())
+    return text.split()
+
+def build_bigram_model(text):
+    bigram_model = defaultdict(list)
+    for i in range(len(text) - 1):
+        bigram_model[text[i]].append(text[i + 1])
+    return bigram_model
+
+def generate_text(bigram_model, start_word, length=50):
+    current_word = start_word
+    output = [current_word]
+    
+    for _ in range(length - 1):
+        if current_word in bigram_model:
+            next_word = random.choice(bigram_model[current_word])
+            output.append(next_word)
+            current_word = next_word
+        else:
+            break 
+    
+    return ' '.join(output)
+
+if __name__ == "__main__":
+    sample_text = """
+    The quick brown fox jumps over the lazy dog. The dog barked at the fox, and the fox ran away.
+    The quick brown fox is fast and clever. The lazy dog, however, is slow and relaxed.
+    """
+
+    tokenized_text = preprocess_text(sample_text)
+
+    bigram_model = build_bigram_model(tokenized_text)
+
+    start_word = "the"
+    generated_text = generate_text(bigram_model, start_word, length=20)
+
+    print("Generated Text:")
+    print(generated_text)
