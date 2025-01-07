@@ -1,0 +1,77 @@
+import random
+from collections import defaultdict
+
+train_data = [
+    ("the", "DT"), ("dog", "NN"), ("barked", "VBD"),
+    ("at", "IN"), ("the", "DT"), ("cat", "NN"),
+    ("the", "DT"), ("cat", "NN"), ("ran", "VBD")
+]
+
+emission_counts = defaultdict(lambda: defaultdict(int))
+transition_counts = defaultdict(lambda: defaultdict(int))
+tag_counts = defaultdict(int)
+
+for word, tag in train_data:
+    emission_counts[tag][word] += 1
+    tag_counts[tag] += 1
+    if len(tag_counts) > 1: 
+        transition_counts[tag][prev_tag] += 1
+    prev_tag = tag
+
+emission_probs = defaultdict(lambda: defaultdict(float))
+transition_probs = defaultdict(lambda: defaultdict(float))
+
+for tag in emission_counts:
+    total_tag_count = tag_counts[tag]
+    for word in emission_counts[tag]:
+        emission_probs[tag][word] = emission_counts[tag][word] / total_tag_count
+
+for tag1 in transition_counts:
+    total_tag1_count = tag_counts[tag1]
+    for tag2 in transition_counts[tag1]:
+        transition_probs[tag1][tag2] = transition_counts[tag1][tag2] / total_tag1_count
+
+def viterbi(sentence):
+    words = sentence.split()
+    n = len(words)
+    tags = list(tag_counts.keys())
+    
+    viterbi_table = defaultdict(lambda: defaultdict(float))
+    backpointer = defaultdict(lambda: defaultdict(str))
+    
+    for tag in tags:
+        viterbi_table[0][tag] = emission_probs[tag].get(words[0], 0) * transition_probs["START"].get(tag, 0)
+    
+    for t in range(1, n):
+        for tag in tags:
+            max_prob = 0
+            best_tag = ""
+            for prev_tag in tags:
+                prob = viterbi_table[t-1][prev_tag] * transition_probs[prev_tag].get(tag, 0) * emission_probs[tag].get(words[t], 0)
+                if prob > max_prob:
+                    max_prob = prob
+                    best_tag = prev_tag
+            viterbi_table[t][tag] = max_prob
+            backpointer[t][tag] = best_tag
+    
+    best_tags = []
+    max_prob = 0
+    best_last_tag = ""
+    
+    for tag in tags:
+        if viterbi_table[n-1][tag] > max_prob:
+            max_prob = viterbi_table[n-1][tag]
+            best_last_tag = tag
+    
+    best_tags.append(best_last_tag)
+    for t in range(n-2, -1, -1):
+        best_tags.append(backpointer[t+1][best_tags[-1]])
+    
+    best_tags.reverse()
+    
+    return list(zip(words, best_tags))
+
+sentence = "the dog ran"
+tags = viterbi(sentence)
+print("Sentence:", sentence)
+print("POS Tags:", tags)
