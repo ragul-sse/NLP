@@ -1,0 +1,63 @@
+import re
+
+class SimplePOSTagger:
+    def __init__(self):
+        self.rules = [
+            (r'.*ed$', 'VBD'),  
+            (r'.*ing$', 'VBG'),  
+            (r'\b(is|am|are)\b', 'VBZ'),  
+            (r'\b(the|a|an)\b', 'DT'),  
+            (r'\b([A-Z][a-z]*)\b', 'NNP'), 
+            (r'\b([a-z]+)\b', 'NN'),  
+            (r'\b(\d+)\b', 'CD'),  
+            (r'\b(in|on|at|by|with|for)\b', 'IN'),  
+            (r'\b(and|or|but)\b', 'CC'),  
+            (r'\b(\w+)\b', 'RB'), 
+        ]
+        
+    def tag(self, sentence):
+        words = sentence.split()
+        tagged_sentence = []
+        
+        for word in words:
+            tagged = False
+            for pattern, tag in self.rules:
+                if re.fullmatch(pattern, word):
+                    tagged_sentence.append((word, tag))
+                    tagged = True
+                    break
+            if not tagged:
+                tagged_sentence.append((word, 'NN'))  
+            
+        return tagged_sentence
+
+class TransformationBasedTagger:
+    def __init__(self):
+        self.initial_tagger = SimplePOSTagger()
+        self.transformation_rules = [
+            ('VBD', 'DT', 'NN'),
+            ('NN', 'DT', 'NNS'),
+            ('VBZ', 'NN', 'VBP'),
+        ]
+        
+    def apply_transformations(self, tagged_sentence):
+        transformed_sentence = tagged_sentence[:]
+        for i in range(len(tagged_sentence) - 1):
+            current_tag = tagged_sentence[i][1]
+            next_tag = tagged_sentence[i+1][1]
+            for (rule_from, rule_to, new_tag) in self.transformation_rules:
+                if current_tag == rule_from and next_tag == rule_to:
+                    transformed_sentence[i] = (tagged_sentence[i][0], new_tag)
+                    break
+        return transformed_sentence
+
+sentence = "The dog is running quickly with a ball"
+tagger = TransformationBasedTagger()
+
+initial_tags = tagger.initial_tagger.tag(sentence)
+print("Initial Tagging:")
+print(initial_tags)
+
+final_tags = tagger.apply_transformations(initial_tags)
+print("\nFinal Tagging after Transformation:")
+print(final_tags)
