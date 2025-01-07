@@ -1,0 +1,85 @@
+import re
+class Term:
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return self.value
+
+class Predicate:
+    def __init__(self, name, args):
+        self.name = name
+        self.args = args
+
+    def __repr__(self):
+        return f"{self.name}({', '.join(map(str, self.args))})"
+
+class Quantifier:
+    def __init__(self, quantifier, variable, expression):
+        self.quantifier = quantifier
+        self.variable = variable
+        self.expression = expression
+
+    def __repr__(self):
+        return f"{self.quantifier}{self.variable} ({self.expression})"
+
+class FOPCParser:
+    def __init__(self):
+        self.patterns = {
+            'quantifier': r'(∀|∃)([a-zA-Z]+)\s*\((.+)\)',  
+            'predicate': r'([A-Z][a-zA-Z]*)\(([^)]+)\)',
+            'variable': r'([a-zA-Z]+)',  
+            'conjunction': r'(\s*∧\s*)', 
+            'disjunction': r'(\s*∨\s*)', 
+        }
+
+    def parse(self, expression):
+        expression = expression.replace(" ", "")  
+        if match := re.match(self.patterns['quantifier'], expression):
+            quantifier = match.group(1)
+            variable = match.group(2)
+            sub_expression = match.group(3)
+            sub_expr_obj = self.parse_expression(sub_expression)
+            return Quantifier(quantifier, variable, sub_expr_obj)
+
+        elif match := re.match(self.patterns['predicate'], expression):
+            predicate_name = match.group(1)
+            args_str = match.group(2)
+            args = [Term(arg) for arg in args_str.split(',')]
+            return Predicate(predicate_name, args)
+
+        else:
+            return self.parse_expression(expression)
+
+    def parse_expression(self, expression):
+        if '∧' in expression:
+            parts = expression.split('∧')
+            left = self.parse(parts[0])
+            right = self.parse(parts[1])
+            return f"({left} ∧ {right})"
+        elif '∨' in expression:
+            parts = expression.split('∨')
+            left = self.parse(parts[0])
+            right = self.parse(parts[1])
+            return f"({left} ∨ {right})"
+        else:
+            return self.parse_predicate(expression)
+
+    def parse_predicate(self, expression):
+        if match := re.match(self.patterns['predicate'], expression):
+            predicate_name = match.group(1)
+            args_str = match.group(2)
+            args = [Term(arg) for arg in args_str.split(',')]
+            return Predicate(predicate_name, args)
+        return None
+
+expression1 = "∀x (P(x) ∧ Q(x, x))"
+expression2 = "∃x P(x)"
+
+parser = FOPCParser()
+
+parsed_expr1 = parser.parse(expression1)
+parsed_expr2 = parser.parse(expression2)
+
+print(f"Parsed Expression 1: {parsed_expr1}")
+print(f"Parsed Expression 2: {parsed_expr2}")
