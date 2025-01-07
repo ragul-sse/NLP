@@ -1,0 +1,36 @@
+import re
+
+def main():
+    text = "The quick brown fox jumps over the lazy dog."
+
+    pattern_start = r"^The"
+    if re.match(pattern_start, text):
+        print(f"Pattern '{pattern_start}' matches at the start of the text.")
+    else:
+        print(f"Pattern '{pattern_start}' does not match at the start of the text.")
+
+    pattern_search = r"fox"
+    if re.search(pattern_search, text):
+        print(f"Pattern '{pattern_search}' found in the text.")
+    else:
+        print(f"Pattern '{pattern_search}' not found in the text.")
+
+    pattern_findall = r"o[wv]"
+    matches = re.findall(pattern_findall, text)
+    print(f"All occurrences of pattern '{pattern_findall}': {matches}")
+
+    pattern_replace = r"lazy"
+    replacement = "active"
+    replaced_text = re.sub(pattern_replace, replacement, text)
+    print(f"Text after replacement: {replaced_text}")
+
+    pattern_split = r"\s"
+    split_text = re.split(pattern_split, text)
+    print(f"Text split by pattern '{pattern_split}': {split_text}")
+
+    pattern_compiled = re.compile(r"[a-zA-Z]+")
+    words = pattern_compiled.findall(text)
+    print(f"Words in the text: {words}")
+
+if __name__ == "__main__":
+    main()
