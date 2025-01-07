@@ -1,0 +1,49 @@
+class TopDownParser:
+    def __init__(self, grammar, start_symbol):
+        self.grammar = grammar  
+        self.start_symbol = start_symbol
+
+    def parse(self, tokens):
+        return self._parse_recursive(tokens, [self.start_symbol])
+
+    def _parse_recursive(self, tokens, stack):
+        if not stack:
+            return not tokens  
+
+        top = stack.pop()
+
+        if top in self.grammar:  
+            for production in self.grammar[top]:
+                new_stack = stack + list(reversed(production))
+                if self._parse_recursive(tokens, new_stack):
+                    return True
+        elif tokens and tokens[0] == top: 
+            return self._parse_recursive(tokens[1:], stack)
+        else:
+            return False
+
+        return False
+
+
+def main():
+    grammar = {
+        'S': [['NP', 'VP']],
+        'NP': [['Det', 'N']],
+        'VP': [['V', 'NP'], ['V']],
+        'Det': [['the'], ['a']],
+        'N': [['dog'], ['cat']],
+        'V': [['chased'], ['slept']]
+    }
+
+    start_symbol = 'S'
+
+    sentence = "the dog chased a cat"
+    tokens = sentence.split()
+
+    parser = TopDownParser(grammar, start_symbol)
+    is_valid = parser.parse(tokens)
+
+    print(f"The sentence '{sentence}' is valid: {is_valid}")
+
+if __name__ == "__main__":
+    main()
