@@ -1,0 +1,37 @@
+import nltk
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+from nltk.corpus import wordnet
+
+def main():
+    nltk.download('punkt_tab')
+    nltk.download('wordnet')
+    nltk.download('omw-1.4')
+
+    text = "The striped bats were hanging on their feet for best."
+
+    tokens = word_tokenize(text)
+    print("Tokenized words:", tokens)
+
+    stemmer = PorterStemmer()
+    lemmatizer = WordNetLemmatizer()
+
+    stemmed_words = [stemmer.stem(word) for word in tokens]
+    print("Stemmed words:", stemmed_words)
+
+    lemmatized_words = [lemmatizer.lemmatize(word, pos=get_wordnet_pos(word)) for word in tokens]
+    print("Lemmatized words:", lemmatized_words)
+
+def get_wordnet_pos(word):
+    """Map POS tag to first character accepted by WordNetLemmatizer."""
+    tag = nltk.pos_tag([word])[0][1][0].upper()
+    tag_dict = {
+        'J': wordnet.ADJ,
+        'N': wordnet.NOUN,
+        'V': wordnet.VERB,
+        'R': wordnet.ADV
+    }
+    return tag_dict.get(tag, wordnet.NOUN)
+
+if __name__ == "__main__":
+    main()
