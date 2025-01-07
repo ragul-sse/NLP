@@ -1,0 +1,14 @@
+from nltk.stem import PorterStemmer
+
+def main():
+    stemmer = PorterStemmer()
+
+    words = ["running", "jumps", "easily", "flying", "bushes", "boxes", "mice"]
+
+    stemmed_words = [(word, stemmer.stem(word)) for word in words]
+
+    for original, stemmed in stemmed_words:
+        print(f"Original: {original}, Stemmed: {stemmed}")
+
+if __name__ == "__main__":
+    main()
