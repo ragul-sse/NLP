@@ -1,0 +1,84 @@
+class EarleyParser:
+    def __init__(self, grammar, start_symbol):
+        self.grammar = grammar
+        self.start_symbol = start_symbol
+
+    def parse(self, tokens):
+        n = len(tokens)
+        chart = [[] for _ in range(n + 1)]
+        chart[0].append((self.start_symbol, [], self.grammar[self.start_symbol][0], 0, []))
+
+        for i in range(n + 1):
+            for state in chart[i]:
+                if len(state[1]) < len(state[2]):
+                    next_symbol = state[2][len(state[1])]
+                    if next_symbol in self.grammar:
+                        self.predict(next_symbol, chart, i)
+                    else:
+                        self.scan(state, tokens, chart, i)
+                else:
+                    self.complete(state, chart, i)
+
+        for state in chart[n]:
+            if state[0] == self.start_symbol and len(state[1]) == len(state[2]) and state[3] == 0:
+                return self.build_parse_tree(state)
+
+        return None
+
+    def predict(self, non_terminal, chart, index):
+        for production in self.grammar[non_terminal]:
+            state = (non_terminal, [], production, index, [])
+            if state not in chart[index]:
+                chart[index].append(state)
+
+    def scan(self, state, tokens, chart, index):
+        if index < len(tokens):
+            next_symbol = state[2][len(state[1])]
+            if next_symbol == tokens[index]:
+                new_state = (state[0], state[1] + [next_symbol], state[2], state[3], state[4] + [tokens[index]])
+                chart[index + 1].append(new_state)
+
+    def complete(self, state, chart, index):
+        for prev_state in chart[state[3]]:
+            if len(prev_state[1]) < len(prev_state[2]) and prev_state[2][len(prev_state[1])] == state[0]:
+                new_state = (prev_state[0], prev_state[1] + [state[0]], prev_state[2], prev_state[3], prev_state[4] + [state])
+                if new_state not in chart[index]:
+                    chart[index].append(new_state)
+
+    def build_parse_tree(self, state):
+        if isinstance(state, str):
+            return state
+
+        lhs, consumed, rhs, origin, children = state
+        tree = {lhs: []}
+        for child in children:
+            tree[lhs].append(self.build_parse_tree(child))
+        return tree
+
+
+def main():
+    grammar = {
+        'S': [['NP', 'VP']],
+        'NP': [['Det', 'N']],
+        'VP': [['V', 'NP'], ['V']],
+        'Det': [['the'], ['a']],
+        'N': [['dog'], ['cat']],
+        'V': [['chased'], ['slept']]
+    }
+
+    start_symbol = 'S'
+
+    sentence = "the dog chased a cat"
+    tokens = sentence.split()
+
+    parser = EarleyParser(grammar, start_symbol)
+    parse_tree = parser.parse(tokens)
+
+    if parse_tree:
+        print(f"The sentence '{sentence}' is valid.")
+        print("Parse Tree:", parse_tree)
+    else:
+        print(f"The sentence '{sentence}' is invalid.")
+
+if __name__ == "__main__":
+    main()
