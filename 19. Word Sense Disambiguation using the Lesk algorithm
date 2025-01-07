@@ -1,0 +1,47 @@
+import nltk
+from nltk.corpus import wordnet as wn
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+
+nltk.download('punkt_tab')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+def lesk(context_sentence, target_word):
+    stop_words = set(stopwords.words('english'))
+    context_tokens = word_tokenize(context_sentence)
+    context_tokens = [word for word in context_tokens if word.isalnum() and word.lower() not in stop_words]
+
+    possible_senses = wn.synsets(target_word)
+    
+    if not possible_senses:
+        return None  
+
+    best_sense = None
+    max_overlap = 0
+
+    for sense in possible_senses:
+        gloss = sense.definition()
+        
+        gloss_tokens = word_tokenize(gloss)
+        gloss_tokens = [word for word in gloss_tokens if word.isalnum() and word.lower() not in stop_words]
+        
+        overlap = len(set(context_tokens).intersection(set(gloss_tokens)))
+        
+        if overlap > max_overlap:
+            best_sense = sense
+            max_overlap = overlap
+
+    return best_sense
+
+context = "I went to the bank to deposit some money."
+target_word = "bank"
+
+sense = lesk(context, target_word)
+
+if sense:
+    print(f"The disambiguated sense of '{target_word}' is:")
+    print(f"Synset: {sense.name()}")
+    print(f"Definition: {sense.definition()}")
+else:
+    print(f"No senses found for '{target_word}' in the given context.")
